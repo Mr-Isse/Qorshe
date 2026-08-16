@@ -32,8 +32,8 @@ async function main() {
   for (const category of defaultCategories) {
     await prisma.category.upsert({
       where: { key: category.key },
-      update: { name: category.name, type: category.type, icon: category.icon, isDefault: true, userId: null },
-      create: { ...category, isDefault: true },
+      update: { name: category.name, type: category.type, icon: category.icon, isDefault: true, isActive: true, userId: null },
+      create: { ...category, isDefault: true, isActive: true },
     });
   }
   console.log(`Seeded ${defaultCategories.length} default categories.`);

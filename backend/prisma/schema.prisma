@@ -85,6 +85,7 @@ model Category {
   type         CategoryType
   icon         String?
   isDefault    Boolean       @default(false)
+  isActive     Boolean       @default(true)
   key          String?       @unique
   user         User?         @relation(fields: [userId], references: [id], onDelete: SetNull, onUpdate: Cascade)
   transactions Transaction[]
@@ -94,6 +95,8 @@ model Category {
 
   @@index([userId])
   @@index([type, isDefault])
+  @@index([isActive])
+  @@index([userId, type, isActive])
 }
 
 model Transaction {
