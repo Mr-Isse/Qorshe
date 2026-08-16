@@ -52,6 +52,10 @@ enum FinancialGoalStatus {
   COMPLETED
   CANCELLED
 }
+enum FinancialGoalEntryType {
+  CONTRIBUTION
+  WITHDRAWAL
+}
 
 enum NotificationType {
   BUDGET_ALERT
@@ -77,6 +81,7 @@ model User {
   savings           Savings[]
   savingsEntries    SavingsEntry[]
   financialGoals    FinancialGoal[]
+  financialGoalEntries FinancialGoalEntry[]
   notifications     Notification[]
   refreshTokens     RefreshToken[]
   passwordResetTokens PasswordResetToken[]
@@ -235,18 +240,43 @@ model FinancialGoal {
   id            String              @id @default(uuid()) @db.Uuid
   userId        String              @db.Uuid
   name          String
+  description   String?
   targetAmount  Decimal             @db.Decimal(19, 4)
   currentAmount Decimal             @default(0) @db.Decimal(19, 4)
   currency      Currency
+  startDate     DateTime            @default(now())
+  targetDate    DateTime            @default(now())
   deadline      DateTime?
-  description   String?
+  isActive      Boolean             @default(true)
   status        FinancialGoalStatus @default(ACTIVE)
   user          User                @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  entries       FinancialGoalEntry[]
   createdAt     DateTime            @default(now())
   updatedAt     DateTime            @updatedAt
 
   @@index([userId])
+  @@index([currency])
+  @@index([isActive])
+  @@index([targetDate])
   @@index([status])
+}
+
+model FinancialGoalEntry {
+  id          String                 @id @default(uuid()) @db.Uuid
+  goalId      String                 @db.Uuid
+  userId      String                 @db.Uuid
+  type        FinancialGoalEntryType
+  amount      Decimal                @db.Decimal(19, 4)
+  description String?
+  date        DateTime
+  goal        FinancialGoal          @relation(fields: [goalId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  user        User                   @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  createdAt   DateTime               @default(now())
+
+  @@index([goalId])
+  @@index([userId])
+  @@index([date])
+  @@index([type])
 }
 
 model RefreshToken {
