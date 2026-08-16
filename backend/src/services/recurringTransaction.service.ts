@@ -1,5 +1,6 @@
 import { Prisma } from '@prisma/client';
 import { getPrismaClient } from '../config/prisma';
+import { createRecurringNotification } from '../utils/notification.utils';
 
 const MAX_OCCURRENCES_PER_SCHEDULE = 1000;
 type Frequency = 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY';
@@ -15,7 +16,7 @@ export function addInterval(value: Date, frequency: Frequency, interval: number)
 }
 
 export async function processRecurringTransactions(userId?: string, asOf = new Date()) {
-  const prisma = getPrismaClient(); const now = asOf; let generated = 0; let schedulesProcessed = 0; let occurrencesSkipped = 0;
+  const prisma = getPrismaClient(); const now = asOf; let generated = 0; let schedulesProcessed = 0; let occurrencesSkipped = 0; const generatedEvents: Array<{ userId: string; scheduleId: string; name: string; amount: Prisma.Decimal; currency: string; occurrence: Date }> = [];
   await prisma.$transaction(async (tx) => {
     const schedules = await tx.recurringTransaction.findMany({ where: { ...(userId ? { userId } : {}), isActive: true, isPaused: false, nextRunDate: { lte: now } }, orderBy: { nextRunDate: 'asc' } });
     for (const schedule of schedules) {
@@ -23,13 +24,14 @@ export async function processRecurringTransactions(userId?: string, asOf = new D
       while (occurrence <= now && processedForSchedule < MAX_OCCURRENCES_PER_SCHEDULE) {
         if (schedule.endDate && occurrence > schedule.endDate) break;
         const inserted = await tx.transaction.createMany({ data: { userId: schedule.userId, categoryId: schedule.categoryId, recurringTransactionId: schedule.id, recurringOccurrenceDate: occurrence, type: schedule.type, amount: schedule.amount, currency: schedule.currency, title: schedule.name, description: schedule.description, date: occurrence }, skipDuplicates: true });
-        if (inserted.count) generated += inserted.count; else occurrencesSkipped += 1;
+        if (inserted.count) { generated += inserted.count; generatedEvents.push({ userId: schedule.userId, scheduleId: schedule.id, name: schedule.name, amount: schedule.amount, currency: schedule.currency, occurrence }); } else occurrencesSkipped += 1;
         lastOccurrence = occurrence; processedForSchedule += 1; occurrence = addInterval(occurrence, schedule.frequency, schedule.interval);
       }
       const reachedEnd = Boolean(schedule.endDate && occurrence > schedule.endDate);
       await tx.recurringTransaction.update({ where: { id: schedule.id }, data: { ...(lastOccurrence ? { lastRunDate: lastOccurrence } : {}), nextRunDate: occurrence, ...(reachedEnd ? { isActive: false } : {}) } });
     }
   });
+  for (const event of generatedEvents) await createRecurringNotification(event.userId, 'RECURRING_GENERATED', 'Recurring transaction generated', `${event.name} for ${event.currency} ${event.amount.toString()} was added to your transactions.`, event.scheduleId, `recurring:${event.scheduleId}:generated:${event.occurrence.toISOString()}`);
   return { generated, occurrencesSkipped, schedulesProcessed, asOf: now.toISOString() };
 }
 

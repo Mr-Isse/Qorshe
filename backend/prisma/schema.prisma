@@ -68,6 +68,15 @@ enum NotificationType {
   BUDGET_ALERT
   SAVINGS_REMINDER
   GOAL_REMINDER
+  BUDGET_WARNING
+  BUDGET_EXCEEDED
+  SAVINGS_PROGRESS
+  SAVINGS_COMPLETED
+  GOAL_PROGRESS
+  GOAL_DEADLINE
+  GOAL_COMPLETED
+  RECURRING_UPCOMING
+  RECURRING_GENERATED
   SYSTEM
 }
 
@@ -91,6 +100,8 @@ model User {
   financialGoalEntries FinancialGoalEntry[]
   recurringTransactions RecurringTransaction[]
   notifications     Notification[]
+  notificationPreference NotificationPreference?
+  devices           UserDevice[]
   refreshTokens     RefreshToken[]
   passwordResetTokens PasswordResetToken[]
   createdAt         DateTime           @default(now())
@@ -352,18 +363,51 @@ model PasswordResetToken {
 }
 
 model Notification {
-  id        String           @id @default(uuid()) @db.Uuid
-  userId    String           @db.Uuid
-  title     String
-  message   String
-  type      NotificationType
-  isRead    Boolean          @default(false)
-  user      User             @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Cascade)
-  createdAt DateTime         @default(now())
-  updatedAt DateTime         @updatedAt
+  id         String           @id @default(uuid()) @db.Uuid
+  userId     String           @db.Uuid
+  title      String
+  message    String
+  type       NotificationType
+  entityType String?
+  entityId   String?          @db.Uuid
+  eventKey   String?
+  isRead     Boolean          @default(false)
+  user       User             @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
 
+  @@unique([userId, eventKey])
   @@index([userId])
   @@index([isRead])
   @@index([createdAt])
   @@index([userId, isRead, createdAt])
+  @@index([type])
+}
+
+model NotificationPreference {
+  id                   String   @id @default(uuid()) @db.Uuid
+  userId               String   @unique @db.Uuid
+  budgetNotifications  Boolean  @default(true)
+  savingsNotifications Boolean  @default(true)
+  goalNotifications    Boolean  @default(true)
+  recurringNotifications Boolean @default(true)
+  systemNotifications  Boolean  @default(true)
+  pushEnabled          Boolean  @default(true)
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+}
+
+model UserDevice {
+  id               String   @id @default(uuid()) @db.Uuid
+  userId           String   @db.Uuid
+  expoPushToken    String   @unique
+  platform         String?
+  isActive         Boolean  @default(true)
+  lastRegisteredAt DateTime @default(now())
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([userId, isActive])
 }
