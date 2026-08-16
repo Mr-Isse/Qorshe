@@ -106,9 +106,11 @@ model Transaction {
   type        TransactionType
   amount      Decimal         @db.Decimal(19, 4)
   currency    Currency
-  title       String
+  title       String        @default("")
   description String?
   date        DateTime
+  isDeleted   Boolean       @default(false)
+  deletedAt   DateTime?
   user        User            @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Cascade)
   category    Category?       @relation(fields: [categoryId], references: [id], onDelete: SetNull, onUpdate: Cascade)
   createdAt   DateTime        @default(now())
@@ -120,6 +122,10 @@ model Transaction {
   @@index([type])
   @@index([createdAt])
   @@index([userId, date])
+  @@index([userId, type])
+  @@index([userId, categoryId])
+  @@index([currency])
+  @@index([isDeleted])
 }
 
 model Budget {
