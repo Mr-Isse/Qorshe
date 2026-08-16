@@ -1,0 +1,21 @@
+import { Router } from 'express';
+import * as controller from '../controllers/report.controller';
+import { requireAuth } from '../middleware/auth.middleware';
+
+const router = Router();
+router.use(requireAuth);
+router.get('/overview', controller.overview);
+router.get('/income', controller.income);
+router.get('/expenses', controller.expenses);
+router.get('/categories', controller.categories);
+router.get('/monthly-trend', controller.monthlyTrend);
+router.get('/daily-trend', controller.dailyTrend);
+router.get('/budgets', controller.budgets);
+router.get('/savings', controller.savings);
+router.get('/goals', controller.goals);
+router.get('/recurring', controller.recurring);
+router.get('/spending-analysis', controller.spending);
+router.get('/income-vs-expense', controller.incomeVsExpense);
+router.get('/comparison', controller.comparison);
+router.get('/financial-health', controller.financialHealth);
+export default router;
