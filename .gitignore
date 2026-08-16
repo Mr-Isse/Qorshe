@@ -8,3 +8,7 @@ build/
 coverage/
 .DS_Store
 *.log
+
+*.tsbuildinfo
+admin/vite.config.js
+admin/vite.config.d.ts
