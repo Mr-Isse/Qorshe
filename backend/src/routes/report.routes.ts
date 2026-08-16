@@ -19,4 +19,5 @@ router.get('/income-vs-expense', controller.incomeVsExpense);
 router.get('/comparison', controller.comparison);
 router.get('/financial-health', controller.financialHealth);
 router.get('/debts', controller.debts);
+router.get('/investments', controller.investments);
 export default router;

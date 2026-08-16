@@ -1,0 +1,16 @@
+import { Router } from 'express';
+import { requireAuth } from '../middleware/auth.middleware';
+import * as controller from '../controllers/investment.controller';
+const router = Router();
+router.use(requireAuth);
+router.get('/summary', controller.summary);
+router.get('/allocation', controller.allocation);
+router.get('/performance', controller.performance);
+router.post('/', controller.createInvestment);
+router.get('/', controller.listInvestments);
+router.get('/:id', controller.getInvestment);
+router.patch('/:id', controller.updateInvestment);
+router.delete('/:id', controller.deleteInvestment);
+router.patch('/:id/close', controller.closeInvestment);
+router.post('/:id/transactions', controller.createTransaction);
+export default router;
