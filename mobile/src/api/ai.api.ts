@@ -1,0 +1,4 @@
+import { apiFetch } from './client';
+export type AIConversation = { id: string; title: string | null; createdAt: string; updatedAt: string; _count?: { messages: number } };
+export type AIMessage = { id: string; role: 'USER' | 'ASSISTANT' | 'SYSTEM'; content: string; createdAt: string };
+export const aiApi = { chat: (message: string, conversationId?: string) => apiFetch<{ message: string; conversationId: string; sources: string[]; assistantMessageId: string }>('/ai/chat', { method: 'POST', body: JSON.stringify({ message, conversationId }) }), conversations: () => apiFetch<{ data: AIConversation[]; pagination: { page: number; limit: number; total: number; totalPages: number } }>('/ai/conversations?limit=50'), messages: (id: string) => apiFetch<AIMessage[]>(`/ai/conversations/${id}/messages`), removeConversation: (id: string) => apiFetch<unknown>(`/ai/conversations/${id}`, { method: 'DELETE' }) };

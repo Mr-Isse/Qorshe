@@ -1,0 +1,7 @@
+import { adminRequest } from './auth.api';
+
+export type AdminBudget = { id: string; name: string; budgetAmount: string; spentAmount: string; remainingAmount: string; percentageUsed: number; status: 'SAFE' | 'WARNING' | 'NEAR_LIMIT' | 'EXCEEDED'; currency: 'USD' | 'SOS'; startDate: string; endDate: string; isActive: boolean; category: { id: string; name: string; type: 'INCOME' | 'EXPENSE'; icon: string | null } | null; user: { id: string; name: string; email: string } };
+export type BudgetQuery = { page?: number; limit?: number; search?: string; categoryId?: string; currency?: 'USD' | 'SOS'; isActive?: boolean; status?: AdminBudget['status'] };
+type ListResponse = { success: boolean; message: string; data: AdminBudget[]; pagination: { page: number; limit: number; total: number; totalPages: number } };
+function queryString(query: BudgetQuery) { const params = new URLSearchParams(); Object.entries(query).forEach(([key, value]) => { if (value !== undefined && value !== '') params.set(key, String(value)); }); return params.toString(); }
+export const adminBudgetApi = { list: (query: BudgetQuery) => adminRequest<ListResponse>(`/admin/budgets?${queryString(query)}`, {}, true, false), summary: () => adminRequest<Record<string, { totalBudgets: number; activeBudgets: number; budgetsExceeded: number; budgetsNearLimit: number; totalBudgetedAmount: string; totalSpentAmount: string; totalRemainingAmount: string }>>('/admin/budgets/summary') };

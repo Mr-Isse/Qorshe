@@ -1,0 +1,18 @@
+import { Router } from 'express';
+import { requireAuth } from '../middleware/auth.middleware';
+import * as controller from '../controllers/debt.controller';
+const router = Router();
+router.use(requireAuth);
+router.get('/summary', controller.summary);
+router.get('/upcoming', controller.upcoming);
+router.get('/overdue', controller.overdue);
+router.post('/', controller.createDebt);
+router.get('/', controller.listDebts);
+router.get('/:id', controller.getDebt);
+router.patch('/:id', controller.updateDebt);
+router.delete('/:id', controller.deleteDebt);
+router.patch('/:id/cancel', controller.cancelDebt);
+router.get('/:id/repayments', controller.listRepayments);
+router.post('/:id/repayments', controller.createRepayment);
+router.delete('/:debtId/repayments/:repaymentId', controller.deleteRepayment);
+export default router;

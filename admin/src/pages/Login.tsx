@@ -1,0 +1,11 @@
+import { useState } from 'react';
+import { Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { useAppDispatch, useAppSelector } from '../store/store';
+import { adminLogin } from '../store/authSlice';
+
+export function Login() {
+  const dispatch = useAppDispatch(); const navigate = useNavigate(); const location = useLocation(); const { isAuthenticated, isLoading, error } = useAppSelector((state) => state.auth); const [email, setEmail] = useState(''); const [password, setPassword] = useState('');
+  if (isAuthenticated) return <Navigate to={(location.state as { from?: string } | null)?.from ?? '/dashboard'} replace />;
+  async function submit(event: React.FormEvent) { event.preventDefault(); const result = await dispatch(adminLogin({ email, password })); if (adminLogin.fulfilled.match(result) && result.payload.user.role === 'ADMIN') navigate('/dashboard', { replace: true }); }
+  return <main className="flex min-h-screen items-center justify-center bg-[#F8FAFA] px-6"><form onSubmit={submit} className="w-full max-w-md rounded-3xl bg-white p-10 shadow-xl shadow-[#04172A]/5"><div className="mb-8"><p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#14BBA6]">QORSHE Admin</p><h1 className="mt-3 text-3xl font-bold text-[#04172A]">Secure sign in</h1><p className="mt-2 text-slate-600">Use an authorized admin account.</p></div><label className="block text-sm font-medium text-[#04172A]">Email<input className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-[#10B981]" type="email" value={email} onChange={(event) => setEmail(event.target.value)} required /></label><label className="mt-4 block text-sm font-medium text-[#04172A]">Password<input className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-[#10B981]" type="password" value={password} onChange={(event) => setPassword(event.target.value)} required /></label>{error && <p className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}<button className="mt-6 w-full rounded-xl bg-[#10B981] px-4 py-3 font-semibold text-white transition hover:bg-[#0E9F71]" type="submit" disabled={isLoading}>{isLoading ? 'Signing in…' : 'Login'}</button></form></main>;
+}

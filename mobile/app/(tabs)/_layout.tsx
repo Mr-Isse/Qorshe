@@ -1,0 +1,10 @@
+import { Redirect, Tabs } from 'expo-router';
+import { ActivityIndicator, View } from 'react-native';
+import { useAppSelector } from '../../src/store/store';
+
+export default function TabsLayout() {
+  const { isLoading, isAuthenticated } = useAppSelector((state) => state.auth);
+  if (isLoading) return <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}><ActivityIndicator /></View>;
+  if (!isAuthenticated) return <Redirect href="/(auth)/login" />;
+  return <Tabs><Tabs.Screen name="index" options={{ title: 'Home' }} /><Tabs.Screen name="profile" options={{ title: 'Profile' }} /><Tabs.Screen name="categories" options={{ title: 'Categories' }} /><Tabs.Screen name="transactions" options={{ title: 'Transactions' }} /><Tabs.Screen name="budgets" options={{ title: 'Budgets' }} /><Tabs.Screen name="savings" options={{ title: 'Savings' }} /><Tabs.Screen name="goals" options={{ title: 'Goals' }} /><Tabs.Screen name="recurring-transactions" options={{ title: 'Recurring' }} /><Tabs.Screen name="notifications" options={{ title: 'Notifications' }} /><Tabs.Screen name="reports" options={{ title: 'Reports' }} /><Tabs.Screen name="assistant" options={{ title: 'Assistant' }} /><Tabs.Screen name="debts" options={{ title: 'Debts' }} /><Tabs.Screen name="investments" options={{ title: 'Investments' }} /></Tabs>;
+}

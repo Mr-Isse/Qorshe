@@ -1,0 +1,20 @@
+import { Router } from 'express';
+import { requireAuth } from '../middleware/auth.middleware';
+import * as controller from '../controllers/notification.controller';
+
+const router = Router();
+router.use(requireAuth);
+router.get('/', controller.getNotifications);
+router.get('/unread-count', controller.getUnreadCount);
+router.get('/preferences', controller.getNotificationPreferences);
+router.patch('/preferences', controller.updateNotificationPreferences);
+router.post('/devices', controller.registerDevice);
+router.delete('/devices/:id', controller.unregisterDevice);
+router.post('/process-reminders', controller.processReminders);
+router.post('/system', controller.createSystemNotification);
+router.patch('/read-all', controller.markAllAsRead);
+router.get('/:id', controller.getNotificationById);
+router.patch('/:id/read', controller.markAsRead);
+router.delete('/:id', controller.deleteNotification);
+router.delete('/', controller.clearNotifications);
+export default router;

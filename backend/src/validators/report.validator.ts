@@ -1,0 +1,4 @@
+import { z } from 'zod';
+
+export const reportQuerySchema = z.object({ period: z.enum(['TODAY', 'THIS_WEEK', 'THIS_MONTH', 'LAST_MONTH', 'THIS_YEAR', 'CUSTOM']).default('THIS_MONTH'), startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(), endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(), currency: z.enum(['USD', 'SOS']).optional(), months: z.coerce.number().int().min(1).max(24).default(6) }).superRefine((value, ctx) => { if (value.period === 'CUSTOM' && (!value.startDate || !value.endDate)) ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['startDate'], message: 'CUSTOM reports require startDate and endDate.' }); if (value.startDate && value.endDate && value.startDate > value.endDate) ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['endDate'], message: 'endDate must be on or after startDate.' }); });
+export type ReportQuery = z.infer<typeof reportQuerySchema>;
