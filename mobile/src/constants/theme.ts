@@ -1,0 +1,1 @@
+export const colors = { primary: '#10B981', secondary: '#14BBA6', navy: '#04172A', background: '#F8FAFA', income: '#10B981', expense: '#EF4444', savings: '#14BBA6', budget: '#3B82F6', goals: '#8B5CF6', warning: '#F59E0B' } as const;

@@ -1,0 +1,1 @@
+export default { content: ['./index.html','./src/**/*.{ts,tsx}'], theme: { extend: { colors: { qorshe: { primary: '#10B981', secondary: '#14BBA6', navy: '#04172A', background: '#F8FAFA' } } } }, plugins: [] };
