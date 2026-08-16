@@ -1,9 +1,11 @@
 import { Router } from 'express';
+import rateLimit from 'express-rate-limit';
 import { requireAuth } from '../../middleware/auth.middleware';
 import * as controller from './ai.controller';
 const router = Router();
+const aiChatLimiter = rateLimit({ windowMs: 60 * 1000, limit: 30, standardHeaders: 'draft-7', legacyHeaders: false, message: { success: false, message: 'Too many AI requests. Please try again later.' } });
 router.use(requireAuth);
-router.post('/chat', controller.chat);
+router.post('/chat', aiChatLimiter, controller.chat);
 router.get('/conversations', controller.listConversations);
 router.get('/conversations/:id', controller.getConversation);
 router.get('/conversations/:id/messages', controller.getMessages);

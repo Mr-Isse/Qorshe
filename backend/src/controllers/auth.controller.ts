@@ -62,6 +62,7 @@ export async function refresh(req: Request, res: Response) {
     const prisma = getPrismaClient();
     const stored = await prisma.refreshToken.findUnique({ where: { id: payload.tokenId }, include: { user: true } });
     if (!stored || stored.revokedAt || stored.expiresAt <= new Date() || stored.tokenHash !== hashToken(parsed.data.refreshToken)) return res.status(401).json({ success: false, message: 'Invalid or expired refresh token.' });
+    if (stored.user.status !== 'ACTIVE') return res.status(403).json({ success: false, message: 'Your account is not active.' });
     const nextId = randomUUID();
     const nextRefreshToken = createRefreshToken(stored.userId, nextId);
     await prisma.$transaction([prisma.refreshToken.update({ where: { id: stored.id }, data: { revokedAt: new Date() } }), prisma.refreshToken.create({ data: { id: nextId, userId: stored.userId, tokenHash: hashToken(nextRefreshToken), expiresAt: refreshExpiryDate() } })]);
