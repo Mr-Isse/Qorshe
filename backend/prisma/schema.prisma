@@ -132,19 +132,25 @@ model Budget {
   id         String    @id @default(uuid()) @db.Uuid
   userId     String    @db.Uuid
   categoryId String?   @db.Uuid
+  name       String    @default("")
   amount     Decimal   @db.Decimal(19, 4)
   currency   Currency
-  month      Int
-  year       Int
+  startDate  DateTime  @default(now())
+  endDate    DateTime  @default(now())
+  isActive   Boolean   @default(true)
+  month      Int       @default(1)
+  year       Int       @default(1970)
   user       User      @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Cascade)
   category   Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull, onUpdate: Cascade)
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
 
-  @@unique([userId, categoryId, month, year])
   @@index([userId])
   @@index([categoryId])
-  @@index([month, year])
+  @@index([startDate, endDate])
+  @@index([currency])
+  @@index([isActive])
+  @@index([userId, categoryId, currency])
 }
 
 model SavingsGoal {
