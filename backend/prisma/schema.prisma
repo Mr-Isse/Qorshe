@@ -42,6 +42,10 @@ enum SavingsGoalStatus {
   COMPLETED
   CANCELLED
 }
+enum SavingsEntryType {
+  DEPOSIT
+  WITHDRAWAL
+}
 
 enum FinancialGoalStatus {
   ACTIVE
@@ -70,6 +74,8 @@ model User {
   transactions      Transaction[]
   budgets           Budget[]
   savingsGoals      SavingsGoal[]
+  savings           Savings[]
+  savingsEntries    SavingsEntry[]
   financialGoals    FinancialGoal[]
   notifications     Notification[]
   refreshTokens     RefreshToken[]
@@ -183,6 +189,46 @@ model SavingsContribution {
 
   @@index([savingsGoalId])
   @@index([date])
+}
+
+model Savings {
+  id            String         @id @default(uuid()) @db.Uuid
+  userId        String         @db.Uuid
+  name          String
+  description   String?
+  targetAmount  Decimal        @db.Decimal(19, 4)
+  currentAmount Decimal        @default(0) @db.Decimal(19, 4)
+  currency      Currency
+  startDate     DateTime
+  targetDate    DateTime
+  isActive      Boolean        @default(true)
+  user          User           @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  entries       SavingsEntry[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@index([userId])
+  @@index([currency])
+  @@index([isActive])
+  @@index([targetDate])
+}
+
+model SavingsEntry {
+  id          String           @id @default(uuid()) @db.Uuid
+  savingsId   String           @db.Uuid
+  userId      String           @db.Uuid
+  type        SavingsEntryType
+  amount      Decimal          @db.Decimal(19, 4)
+  description String?
+  date        DateTime
+  savings     Savings          @relation(fields: [savingsId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  user        User             @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  createdAt   DateTime         @default(now())
+
+  @@index([savingsId])
+  @@index([userId])
+  @@index([date])
+  @@index([type])
 }
 
 model FinancialGoal {
