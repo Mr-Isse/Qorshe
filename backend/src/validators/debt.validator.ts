@@ -1,0 +1,10 @@
+import { z } from 'zod';
+const date = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+export const createDebtSchema = z.object({ type: z.enum(['I_OWE', 'OWED_TO_ME']), personName: z.string().trim().min(1).max(120), personPhone: z.string().trim().max(40).optional().nullable(), title: z.string().trim().min(1).max(160), description: z.string().trim().max(2000).optional().nullable(), originalAmount: z.coerce.number().positive(), currency: z.enum(['USD', 'SOS']), dueDate: date.optional().nullable() });
+export const updateDebtSchema = z.object({ personName: z.string().trim().min(1).max(120).optional(), personPhone: z.string().trim().max(40).optional().nullable(), title: z.string().trim().min(1).max(160).optional(), description: z.string().trim().max(2000).optional().nullable(), dueDate: date.optional().nullable() }).refine((value) => Object.keys(value).length > 0, 'At least one editable field is required.');
+export const debtQuerySchema = z.object({ type: z.enum(['I_OWE', 'OWED_TO_ME']).optional(), status: z.enum(['ACTIVE', 'PARTIALLY_PAID', 'PAID', 'OVERDUE', 'CANCELLED']).optional(), currency: z.enum(['USD', 'SOS']).optional(), search: z.string().trim().max(120).optional(), page: z.coerce.number().int().min(1).default(1), limit: z.coerce.number().int().min(1).max(50).default(20) });
+export const repaymentSchema = z.object({ amount: z.coerce.number().positive(), currency: z.enum(['USD', 'SOS']), paymentDate: date, note: z.string().trim().max(500).optional().nullable() });
+export const upcomingQuerySchema = z.object({ days: z.coerce.number().int().min(1).max(365).default(30), currency: z.enum(['USD', 'SOS']).optional() });
+export const debtIdSchema = z.object({ id: z.string().uuid() });
+export const repaymentIdSchema = z.object({ debtId: z.string().uuid(), repaymentId: z.string().uuid() });
+export type CreateDebtInput = z.infer<typeof createDebtSchema>;
