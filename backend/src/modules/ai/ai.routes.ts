@@ -1,0 +1,11 @@
+import { Router } from 'express';
+import { requireAuth } from '../../middleware/auth.middleware';
+import * as controller from './ai.controller';
+const router = Router();
+router.use(requireAuth);
+router.post('/chat', controller.chat);
+router.get('/conversations', controller.listConversations);
+router.get('/conversations/:id', controller.getConversation);
+router.get('/conversations/:id/messages', controller.getMessages);
+router.delete('/conversations/:id', controller.deleteConversation);
+export default router;

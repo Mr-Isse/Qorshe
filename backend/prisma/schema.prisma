@@ -64,6 +64,12 @@ enum RecurringTransactionFrequency {
   YEARLY
 }
 
+enum AIMessageRole {
+  USER
+  ASSISTANT
+  SYSTEM
+}
+
 enum NotificationType {
   BUDGET_ALERT
   SAVINGS_REMINDER
@@ -104,6 +110,7 @@ model User {
   devices           UserDevice[]
   refreshTokens     RefreshToken[]
   passwordResetTokens PasswordResetToken[]
+  aiConversations  AIConversation[]
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
 }
@@ -332,6 +339,29 @@ model FinancialGoalEntry {
   @@index([userId])
   @@index([date])
   @@index([type])
+}
+
+model AIConversation {
+  id        String      @id @default(uuid()) @db.Uuid
+  userId    String      @db.Uuid
+  title     String?
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  messages  AIMessage[]
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  @@index([userId, updatedAt])
+}
+
+model AIMessage {
+  id             String        @id @default(uuid()) @db.Uuid
+  conversationId String        @db.Uuid
+  role           AIMessageRole
+  content        String
+  conversation   AIConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  createdAt      DateTime      @default(now())
+
+  @@index([conversationId, createdAt])
 }
 
 model RefreshToken {
