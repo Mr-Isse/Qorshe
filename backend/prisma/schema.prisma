@@ -57,6 +57,13 @@ enum FinancialGoalEntryType {
   WITHDRAWAL
 }
 
+enum RecurringTransactionFrequency {
+  DAILY
+  WEEKLY
+  MONTHLY
+  YEARLY
+}
+
 enum NotificationType {
   BUDGET_ALERT
   SAVINGS_REMINDER
@@ -82,6 +89,7 @@ model User {
   savingsEntries    SavingsEntry[]
   financialGoals    FinancialGoal[]
   financialGoalEntries FinancialGoalEntry[]
+  recurringTransactions RecurringTransaction[]
   notifications     Notification[]
   refreshTokens     RefreshToken[]
   passwordResetTokens PasswordResetToken[]
@@ -100,6 +108,7 @@ model Category {
   key          String?       @unique
   user         User?         @relation(fields: [userId], references: [id], onDelete: SetNull, onUpdate: Cascade)
   transactions Transaction[]
+  recurringTransactions RecurringTransaction[]
   budgets      Budget[]
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
@@ -114,6 +123,8 @@ model Transaction {
   id          String          @id @default(uuid()) @db.Uuid
   userId      String          @db.Uuid
   categoryId  String?         @db.Uuid
+  recurringTransactionId String? @db.Uuid
+  recurringOccurrenceDate DateTime?
   type        TransactionType
   amount      Decimal         @db.Decimal(19, 4)
   currency    Currency
@@ -124,6 +135,7 @@ model Transaction {
   deletedAt   DateTime?
   user        User            @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Cascade)
   category    Category?       @relation(fields: [categoryId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  recurringTransaction RecurringTransaction? @relation(fields: [recurringTransactionId], references: [id], onDelete: SetNull, onUpdate: Cascade)
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
 
@@ -137,6 +149,38 @@ model Transaction {
   @@index([userId, categoryId])
   @@index([currency])
   @@index([isDeleted])
+  @@index([recurringTransactionId])
+  @@unique([recurringTransactionId, recurringOccurrenceDate])
+}
+
+model RecurringTransaction {
+  id          String                       @id @default(uuid()) @db.Uuid
+  userId      String                       @db.Uuid
+  type        TransactionType
+  categoryId  String                       @db.Uuid
+  name        String
+  description String?
+  amount      Decimal                      @db.Decimal(19, 4)
+  currency    Currency
+  frequency   RecurringTransactionFrequency
+  interval    Int                          @default(1)
+  startDate   DateTime
+  endDate     DateTime?
+  nextRunDate DateTime
+  lastRunDate DateTime?
+  isActive    Boolean                      @default(true)
+  isPaused    Boolean                      @default(false)
+  user        User                         @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  category    Category                     @relation(fields: [categoryId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  transactions Transaction[]
+  createdAt   DateTime                     @default(now())
+  updatedAt   DateTime                     @updatedAt
+
+  @@index([userId])
+  @@index([categoryId])
+  @@index([nextRunDate])
+  @@index([isActive, isPaused, nextRunDate])
+  @@index([currency])
 }
 
 model Budget {
