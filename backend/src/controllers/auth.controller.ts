@@ -5,7 +5,7 @@ import { env } from '../config/env';
 import { comparePassword, createAccessToken, createOpaqueToken, createRefreshToken, hashPassword, hashToken, verifyRefreshToken } from '../utils/auth';
 import { changePasswordSchema, forgotPasswordSchema, loginSchema, refreshSchema, registerSchema, resetPasswordSchema } from '../validators/auth.validator';
 
-const publicUserSelect = { id: true, name: true, email: true, phone: true, role: true, preferredLanguage: true, preferredCurrency: true, createdAt: true } as const;
+const publicUserSelect = { id: true, name: true, email: true, phone: true, role: true, status: true, preferredLanguage: true, preferredCurrency: true, createdAt: true, updatedAt: true } as const;
 const genericResetMessage = 'If the account exists, password reset instructions will be sent.';
 
 function validationError(res: Response, error: unknown) {
@@ -43,6 +43,7 @@ export async function login(req: Request, res: Response) {
   if (!parsed.success) return validationError(res, parsed.error);
   const user = await getPrismaClient().user.findUnique({ where: { email: parsed.data.email } });
   if (!user || !(await comparePassword(parsed.data.password, user.password))) return res.status(401).json({ success: false, message: 'Invalid email or password.' });
+  if (user.status !== 'ACTIVE') return res.status(403).json({ success: false, message: 'Your account is not active.' });
 
   const tokenId = randomUUID();
   const refreshToken = createRefreshToken(user.id, tokenId);

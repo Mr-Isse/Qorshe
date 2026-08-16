@@ -1,6 +1,6 @@
 import { apiFetch } from './client';
 
-export type AuthUser = { id: string; name: string; email: string; phone: string | null; role: 'USER' | 'ADMIN'; preferredLanguage: 'SO' | 'EN'; preferredCurrency: 'USD' | 'SOS'; createdAt: string };
+export type AuthUser = { id: string; name: string; email: string; phone: string | null; role: 'USER' | 'ADMIN'; status: 'ACTIVE' | 'SUSPENDED' | 'DEACTIVATED'; preferredLanguage: 'SO' | 'EN'; preferredCurrency: 'USD' | 'SOS'; createdAt: string; updatedAt: string };
 type AuthSession = { user: AuthUser; accessToken: string; refreshToken: string };
 
 export const authApi = {
@@ -10,4 +10,6 @@ export const authApi = {
   logout: (refreshToken: string) => apiFetch('/auth/logout', { method: 'POST', body: JSON.stringify({ refreshToken }) }),
   forgotPassword: (email: string) => apiFetch<{ message: string }>('/auth/forgot-password', { method: 'POST', body: JSON.stringify({ email }) }),
   resetPassword: (token: string, newPassword: string) => apiFetch<{ message: string }>('/auth/reset-password', { method: 'POST', body: JSON.stringify({ token, newPassword }) }),
+  updateProfile: (input: { name?: string; phone?: string; preferredLanguage?: 'SO' | 'EN'; preferredCurrency?: 'USD' | 'SOS' }) => apiFetch<AuthUser>('/users/me', { method: 'PATCH', body: JSON.stringify(input) }),
+  deactivateAccount: () => apiFetch<AuthUser>('/users/me', { method: 'DELETE' }),
 };

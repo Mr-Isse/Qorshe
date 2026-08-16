@@ -7,4 +7,5 @@ const router = Router();
 router.use(requireAuth);
 router.get('/me', asyncHandler(userController.getCurrentUser));
 router.patch('/me', asyncHandler(userController.updateCurrentUser));
+router.delete('/me', asyncHandler(userController.deactivateCurrentUser));
 export default router;

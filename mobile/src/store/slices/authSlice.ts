@@ -27,7 +27,7 @@ export const logout = createAsyncThunk('auth/logout', async (_: void, { getState
 const authSlice = createSlice({
   name: 'auth',
   initialState,
-  reducers: { clearAuthError: (state) => { state.error = null; }, setSession: (state, action: PayloadAction<{ user: AuthUser; accessToken: string; refreshToken: string }>) => { Object.assign(state, { ...action.payload, isAuthenticated: true, isLoading: false, error: null }); } },
+  reducers: { clearAuthError: (state) => { state.error = null; }, setUser: (state, action: PayloadAction<AuthUser>) => { state.user = action.payload; }, setSession: (state, action: PayloadAction<{ user: AuthUser; accessToken: string; refreshToken: string }>) => { Object.assign(state, { ...action.payload, isAuthenticated: true, isLoading: false, error: null }); } },
   extraReducers: (builder) => {
     builder.addCase(restoreSession.pending, (state) => { state.isLoading = true; });
     builder.addCase(restoreSession.fulfilled, (state, action) => { state.isLoading = false; if (action.payload) Object.assign(state, { ...action.payload, isAuthenticated: true }); else Object.assign(state, { user: null, accessToken: null, refreshToken: null, isAuthenticated: false }); });
@@ -39,5 +39,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { clearAuthError, setSession } = authSlice.actions;
+export const { clearAuthError, setUser, setSession } = authSlice.actions;
 export default authSlice.reducer;
