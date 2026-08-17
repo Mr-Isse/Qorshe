@@ -1,6 +1,11 @@
 import { clearSession, getSession, saveSession } from '../utils/secureSession';
 
-export const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:5000/api/v1';
+export const API_URL = process.env.EXPO_PUBLIC_API_URL;
+
+function requireApiUrl() {
+  if (!API_URL) throw new Error('API URL is not configured. Set EXPO_PUBLIC_API_URL in mobile/.env.');
+  return API_URL;
+}
 
 type ApiResponse<T> = { success: boolean; message: string; data?: T };
 let refreshInFlight: Promise<string | null> | null = null;
@@ -10,7 +15,7 @@ async function refreshAccessToken(): Promise<string | null> {
     refreshInFlight = (async () => {
       const session = await getSession();
       if (!session.refreshToken) return null;
-      const response = await fetch(`${API_URL}/auth/refresh`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ refreshToken: session.refreshToken }) });
+      const response = await fetch(`${requireApiUrl()}/auth/refresh`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ refreshToken: session.refreshToken }) });
       if (!response.ok) return null;
       const payload = (await response.json()) as ApiResponse<{ accessToken: string; refreshToken: string }>;
       if (!payload.success || !payload.data) return null;
@@ -26,7 +31,7 @@ export async function apiFetch<T>(path: string, init: RequestInit = {}, retry = 
   const headers = new Headers(init.headers);
   headers.set('Content-Type', 'application/json');
   if (session.accessToken) headers.set('Authorization', `Bearer ${session.accessToken}`);
-  const response = await fetch(`${API_URL}${path}`, { ...init, headers });
+  const response = await fetch(`${requireApiUrl()}${path}`, { ...init, headers });
   if (response.status === 401 && retry && !path.includes('/auth/refresh')) {
     const nextAccessToken = await refreshAccessToken();
     if (nextAccessToken) return apiFetch<T>(path, init, false);
