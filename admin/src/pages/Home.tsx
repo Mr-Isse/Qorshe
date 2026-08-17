@@ -11,6 +11,11 @@ import { usersApi } from '../api/users.api';
 type BudgetSummary = Record<string, { totalBudgets: number; activeBudgets: number; budgetsExceeded: number; budgetsNearLimit: number; totalBudgetedAmount: string; totalSpentAmount: string; totalRemainingAmount: string }>;
 type SavingsSummary = Record<string, { targetAmount: string; savedAmount: string; remainingAmount: string; totalPlans: number; activePlans: number; completedPlans: number; overduePlans: number }>;
 type DashboardData = { totalUsers: number; activeUsers: number; transactions: Record<string, { incomeRecords: number; expenseRecords: number; incomeTotal: string; expenseTotal: string }>; overview: Record<'USD' | 'SOS', AdminOverview>; budgets: BudgetSummary; savings: SavingsSummary; debts: AdminDebtSummary; recentTransactions: AdminTransaction[] };
+const emptyOverview: AdminOverview = { totalIncome: '0', totalExpenses: '0', netBalance: '0', transactionCount: 0 };
+const emptyBudget = { totalBudgets: 0, activeBudgets: 0, budgetsExceeded: 0, budgetsNearLimit: 0, totalBudgetedAmount: '0', totalSpentAmount: '0', totalRemainingAmount: '0' };
+const emptySavings = { targetAmount: '0', savedAmount: '0', remainingAmount: '0', totalPlans: 0, activePlans: 0, completedPlans: 0, overduePlans: 0 };
+const emptyDebt = { totalOriginal: '0', totalPaid: '0', totalRemaining: '0', activeCount: 0, overdueCount: 0, paidCount: 0 };
+const emptyDebts: AdminDebtSummary = { USD: { I_OWE: emptyDebt, OWED_TO_ME: emptyDebt }, SOS: { I_OWE: emptyDebt, OWED_TO_ME: emptyDebt } };
 
 const numberFormatter = new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 });
 function amount(value: string | number | undefined, currency?: string) { if (value === undefined) return '—'; return `${currency ? `${currency} ` : ''}${numberFormatter.format(Number(value))}`; }
@@ -42,7 +47,11 @@ export function Home() {
         adminDebtApi.summary(),
         adminTransactionApi.list({ page: 1, limit: 6 }),
       ]);
-      setData({ totalUsers: users.pagination.total, activeUsers: activeUsers.pagination.total, transactions, overview, budgets, savings, debts, recentTransactions: recent.data });
+      const safeBudgets = { USD: budgets?.USD ?? emptyBudget, SOS: budgets?.SOS ?? emptyBudget };
+      const safeSavings = { USD: savings?.USD ?? emptySavings, SOS: savings?.SOS ?? emptySavings };
+      const safeOverview = { USD: overview?.USD ?? emptyOverview, SOS: overview?.SOS ?? emptyOverview };
+      const safeDebts: AdminDebtSummary = { USD: { I_OWE: debts?.USD?.I_OWE ?? emptyDebt, OWED_TO_ME: debts?.USD?.OWED_TO_ME ?? emptyDebt }, SOS: { I_OWE: debts?.SOS?.I_OWE ?? emptyDebt, OWED_TO_ME: debts?.SOS?.OWED_TO_ME ?? emptyDebt } };
+      setData({ totalUsers: users?.pagination?.total ?? 0, activeUsers: activeUsers?.pagination?.total ?? 0, transactions: transactions ?? {}, overview: safeOverview, budgets: safeBudgets, savings: safeSavings, debts: safeDebts, recentTransactions: recent?.data ?? [] });
     } catch (requestError) { setError(requestError instanceof Error ? requestError.message : 'Unable to load dashboard data.'); }
     finally { setLoading(false); }
   }
